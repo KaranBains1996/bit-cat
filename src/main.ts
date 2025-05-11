@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, screen } from 'electron';
 import path from 'node:path';
 import shouldQuit from 'electron-squirrel-startup';
 
@@ -7,13 +7,15 @@ if (shouldQuit) {
   app.quit();
 }
 
+let mainWindow: BrowserWindow;
+
 const createWindow = () => {
-   const display = screen.getPrimaryDisplay();
+  const display = screen.getPrimaryDisplay();
   const { width, height } = display.workAreaSize;
   const { x, y } = display.workArea; // x/y offset from multi-monitor setups
 
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 48,          // Full taskbar width
     height: 48,           // Your canvas height
     x: x + (width / 2),                  // Align with left edge
@@ -28,6 +30,7 @@ const createWindow = () => {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
+      nodeIntegration: true,
     },
   });
 
@@ -41,6 +44,23 @@ const createWindow = () => {
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();
 };
+
+ipcMain.on('move-window', (_, offset: { x: number, y: number }) => {
+  const currentBounds = mainWindow.getBounds(); // Get the current window bounds
+  const newX = currentBounds.x + offset.x; // Add offset.x to the current x position
+  const newY = currentBounds.y + offset.y; // Add offset.y to the current y position
+
+  mainWindow.setBounds({
+    x: newX, // Update the x position
+    y: newY, // Update the y position
+    width: currentBounds.width, // Keep the width unchanged
+    height: currentBounds.height // Keep the height unchanged
+  });
+});
+
+ipcMain.on('log', (_, ...messages: unknown[]) => {
+  console.log(...messages);
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

@@ -3,7 +3,7 @@ html, body {
   padding: 0;
   display: inline-block;
   overflow: hidden;
-  width: 48px;
+  width: 100%;
   height: 48px;
   /* pointer-events: none; */
   background: transparent;
@@ -11,10 +11,10 @@ html, body {
 }
 
 canvas {
-  width: 48px;
+  width: 100%;
   height: 48px;
   cursor: pointer;
-  background-color: red;
+  background-color: transparent;
   pointer-events: auto; /* Allow pointer events on the canvas */
   position: absolute; /* Ensure it is positioned correctly */
   z-index: 1000; /* High z-index to stay on top */

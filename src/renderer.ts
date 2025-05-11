@@ -27,11 +27,16 @@
  */
 
 import './index.css';
-import Phaser from 'phaser';
+import Phaser, { AUTO, Game, Textures, Math as PhaserMath } from 'phaser';
 import catSprite from './assets/cat-sprite-sheet.png';
+import catMeow from './assets/cat-meow.mp3';
+import { state, AnimationKey } from './state';
+import { createAnimations } from './animations';
+import onPointerDown from './sprite-actions';
+import { secondsToMilliseconds } from './utils/seconds-to-milliseconds';
 
 const config: Phaser.Types.Core.GameConfig = {
-  type: Phaser.AUTO,
+  type: AUTO,
   width: 48,
   height: 48,
   backgroundColor: 'rgba(0, 0, 0, 0)', // Transparent background
@@ -45,44 +50,57 @@ const config: Phaser.Types.Core.GameConfig = {
 
 let sprite: Phaser.GameObjects.Sprite;
 
-const game = new Phaser.Game(config);
-
-const ROW = (n: number) => n * 8;
+new Game(config);
 
 function preload(this: Phaser.Scene) {
   this.load.spritesheet('cat', catSprite, {
     frameWidth: 32,
     frameHeight: 32
   });
+  this.load.audio('clickSound', catMeow);
 }
 
 function create(this: Phaser.Scene) {
-  this.anims.create({
-    key: 'idle',
-    frames: this.anims.generateFrameNumbers('cat', { start: ROW(0), end: ROW(0) + 3 }),
-    frameRate: 6,
-    repeat: -1
-  });
+  createAnimations(this);
 
-  this.anims.create({
-    key: 'walk',
-    frames: this.anims.generateFrameNumbers('cat', { start: ROW(2), end: ROW(2) + 3 }),
-    frameRate: 6,
-    repeat: -1
-  });
+  this.textures.get('cat').setFilter(Textures.FilterMode.NEAREST);
 
-  this.textures.get('cat').setFilter(Phaser.Textures.FilterMode.NEAREST);
-
-
-  sprite = this.add.sprite(24, 16, 'cat').setInteractive();
-  sprite.setScale(2); // Optional: scale up to 64x64
+  sprite = this.add.sprite(24, 16, 'cat').setInteractive({ useHandCursor: true, cursor: 'pointer' });
+  sprite.setScale(2);
   sprite.play('idle');
+  sprite.setFlipX(state.directionFacing === 'left');
 
   sprite.on('pointerdown', () => {
-    sprite.play('walk');
+    this.sound.play('clickSound');
+    onPointerDown(sprite)
   });
 }
 
-function update() {
-  // Optional: Move or change animations here
+  const animationLoop: AnimationKey[] = ['idle', 'sleep', 'clean', 'poke'];
+
+function update(this: Phaser.Scene, time: number) {
+  if (sprite.anims.getName() !== 'walk' && time - state.lastToggleTime > state.toggleInterval) {
+    state.lastToggleTime = time;
+
+    // Randomly select an animation from `animationLoop` which is not the current animation
+    const nextAnimation = PhaserMath.RND.pick(animationLoop.filter(anim => anim !== state.currentAnimation));
+    switch (nextAnimation) {
+      case 'clean':
+        state.toggleInterval = PhaserMath.Between(secondsToMilliseconds(3), secondsToMilliseconds(7));
+        break;
+      case 'poke':
+        state.toggleInterval = secondsToMilliseconds(5);
+        break;
+
+      case 'sleep':
+      case 'idle':
+        state.toggleInterval = PhaserMath.Between(secondsToMilliseconds(10), secondsToMilliseconds(30));
+        break
+    }
+
+    sprite.play(nextAnimation);
+    state.currentAnimation = nextAnimation;
+    state.directionFacing = state.directionFacing === 'right' ? 'left' : 'right';
+    sprite.setFlipX(state.directionFacing === 'left');
+  }
 }
