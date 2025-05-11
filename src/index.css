@@ -1,0 +1,21 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  display: inline-block;
+  overflow: hidden;
+  width: 48px;
+  height: 48px;
+  /* pointer-events: none; */
+  background: transparent;
+  cursor: pointer;
+}
+
+canvas {
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  background-color: red;
+  pointer-events: auto; /* Allow pointer events on the canvas */
+  position: absolute; /* Ensure it is positioned correctly */
+  z-index: 1000; /* High z-index to stay on top */
+}
