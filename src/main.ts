@@ -73,8 +73,22 @@ ipcMain.on('move-cat', (_, direction: 'left' | 'right') => {
     }
 
     const currentBounds = mainWindow.getBounds();
+    const newX = currentBounds.x + step;
+
+    // Get the screen bounds
+    const display = screen.getPrimaryDisplay();
+    const { width } = display.workAreaSize;
+    const { x } = display.workArea;
+
+    // Check if the window is about to go off-screen
+    if (newX < x || newX + currentBounds.width > x + width) {
+      clearInterval(moveInterval); // Stop moving
+      mainWindow.webContents.send('move-cat-complete'); // Notify that movement is complete
+      return;
+    }
+
     mainWindow.setBounds({
-      x: currentBounds.x + step, // Move 1px in the specified direction
+      x: newX, // Move 1px in the specified direction
       y: currentBounds.y,
       width: currentBounds.width,
       height: currentBounds.height,
