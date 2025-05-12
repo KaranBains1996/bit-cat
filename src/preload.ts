@@ -5,6 +5,8 @@ import type { ElectronAPI } from './types/electronAPI';
 
 const electronAPI: ElectronAPI = {
 	moveWindow: (x: number, y: number) => ipcRenderer.send('move-window', {x, y}),
+	moveCat: (direction: 'left' | 'right') => ipcRenderer.send('move-cat', direction),
+	moveCatComplete: (callback) => ipcRenderer.on('move-cat-complete', () => callback()),
 	log: (...messages) => ipcRenderer.send('log', messages),
 }
 

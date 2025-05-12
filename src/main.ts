@@ -58,6 +58,30 @@ ipcMain.on('move-window', (_, offset: { x: number, y: number }) => {
   });
 });
 
+ipcMain.on('move-cat', (_, direction: 'left' | 'right') => {
+  const interval = 16; // Move every 16ms for 60 fps
+  const duration = 5000; // Total duration of 5 seconds
+  const step = direction === 'left' ? -1 : 1; // Move left or right by 1px
+  const startTime = Date.now();
+
+  const moveInterval = setInterval(() => {
+    const elapsedTime = Date.now() - startTime;
+    if (elapsedTime >= duration) {
+      clearInterval(moveInterval); // Stop moving after 5 seconds
+      mainWindow.webContents.send('move-cat-complete'); // Notify that movement is complete
+      return;
+    }
+
+    const currentBounds = mainWindow.getBounds();
+    mainWindow.setBounds({
+      x: currentBounds.x + step, // Move 1px in the specified direction
+      y: currentBounds.y,
+      width: currentBounds.width,
+      height: currentBounds.height,
+    });
+  }, interval);
+});
+
 ipcMain.on('log', (_, ...messages: unknown[]) => {
   console.log(...messages);
 });

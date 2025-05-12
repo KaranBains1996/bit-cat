@@ -104,3 +104,9 @@ function update(this: Phaser.Scene, time: number) {
     sprite.setFlipX(state.directionFacing === 'left');
   }
 }
+
+window.electronAPI.moveCatComplete(() => {
+  sprite.play('idle');
+  state.directionFacing = state.directionFacing === 'right' ? 'left' : 'right';
+  sprite.setFlipX(state.directionFacing === 'left');
+});
