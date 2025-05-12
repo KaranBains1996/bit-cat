@@ -1,7 +1,7 @@
-import type { ElectronAPI } from './electronAPI';
+import type { BitCatAPI } from './bit-cat-api';
 
 declare global {
   interface Window {
-    electronAPI: ElectronAPI;
+    bitCatAPI: BitCatAPI;
   }
 }

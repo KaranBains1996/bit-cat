@@ -101,12 +101,14 @@ function update(this: Phaser.Scene, time: number) {
     sprite.play(nextAnimation);
     state.currentAnimation = nextAnimation;
     state.directionFacing = state.directionFacing === 'right' ? 'left' : 'right';
-    sprite.setFlipX(state.directionFacing === 'left');
   }
 }
 
-window.electronAPI.moveCatComplete(() => {
+window.bitCatAPI.moveCatComplete(() => {
   sprite.play('idle');
-  state.directionFacing = state.directionFacing === 'right' ? 'left' : 'right';
-  sprite.setFlipX(state.directionFacing === 'left');
+});
+
+window.bitCatAPI.changeCatDirection((direction) => {
+  sprite.setFlipX(direction === 'left');
+  state.directionFacing = direction;
 });

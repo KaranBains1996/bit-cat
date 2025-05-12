@@ -58,10 +58,33 @@ ipcMain.on('move-window', (_, offset: { x: number, y: number }) => {
   });
 });
 
-ipcMain.on('move-cat', (_, direction: 'left' | 'right') => {
+ipcMain.on('move-cat', () => {
+  const currentBounds = mainWindow.getBounds();
+  const display = screen.getPrimaryDisplay();
+  const { width } = display.workAreaSize;
+  const { x } = display.workArea;
+
+  const centerX = x + width / 2;
+  const windowCenterX = currentBounds.x + currentBounds.width / 2;
+
+  let directionToMove = 'right'; // Default direction
+
+  // Check if window is centered
+  if (Math.abs(windowCenterX - centerX) < 1) {
+    // Randomly choose a direction if the window is centered
+    directionToMove = Math.random() < 0.5 ? 'left' : 'right';
+    mainWindow.webContents.send('change-cat-direction', directionToMove);
+  } else if (windowCenterX < centerX) {
+    directionToMove = 'right';
+    mainWindow.webContents.send('change-cat-direction', 'right');
+  } else {
+    directionToMove = 'left';
+    mainWindow.webContents.send('change-cat-direction', 'left');
+  }
+
   const interval = 16; // Move every 16ms for 60 fps
   const duration = 5000; // Total duration of 5 seconds
-  const step = direction === 'left' ? -1 : 1; // Move left or right by 1px
+  const step = directionToMove === 'left' ? -1 : 1; // Move left or right by 1px
   const startTime = Date.now();
 
   const moveInterval = setInterval(() => {
@@ -103,7 +126,13 @@ ipcMain.on('log', (_, ...messages: unknown[]) => {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+  // Hide app icon in dock if platform is macOS
+  if (process.platform === 'darwin') {
+    app.dock.hide();
+  }
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
